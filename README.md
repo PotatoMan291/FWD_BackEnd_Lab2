@@ -1,200 +1,89 @@
-# Cafetería — Punto de venta e inventario
+# Café Central — Sistema de ventas e inventario
 
-## Descripción
+## 1. Descripción
 
-Aplicación para gestionar una cafetería mediante una API REST desarrollada con Node.js y Express, conectada a PostgreSQL.
+Aplicación web para administrar productos, insumos, recetas, pedidos e inventario de Café Central. Incluye un agente de inteligencia artificial implementado con n8n que analiza el inventario y las ventas semanales para sugerir compras justificadas.
 
-El sistema administra los insumos, los productos, sus recetas y los pedidos. Al registrar una venta, verifica las existencias, calcula el impuesto del 13 % y descuenta los ingredientes utilizados. También permite anular pedidos dentro de los primeros 15 minutos y consultar el resumen diario de caja.
+## 2. Tecnologías
 
-## Tecnologías
+- Frontend: React y Vite.
+- Backend: Node.js y Express.
+- Base de datos: PostgreSQL.
+- Automatización y agente de IA: n8n.
+- Comunicación frontend-backend: API REST.
+- Control de versiones: Git y GitHub.
 
-- Node.js
-- Express
-- PostgreSQL
-- `pg` para la conexión con la base de datos
-- `dotenv` para las variables de entorno
-- `cors` para permitir solicitudes desde el frontend
-- Postman para probar la API
+## 3. Requisitos previos
 
-## Estructura del proyecto
+- Node.js y npm.
+- PostgreSQL.
+- Una instancia de n8n.
+- Credenciales para un modelo de IA compatible con el nodo AI Agent.
 
-```text
-Laboratorio2_Cafeteria/
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── db.js
-│   │   └── server.js
-│   ├── .env
-│   ├── .gitignore
-│   └── package.json
-├── postman/
-│   └── Cafeteria_API.postman_collection.json
-├── schema.sql
-├── README.md
-└── BITACORA_IA.md
-```
+## 4. Instalación y ejecución
 
-## Modelo de datos
+### Base de datos
 
-Las entidades principales son:
+1. Crear la base de datos `cafeteria_db`.
+2. Ejecutar `schema.sql` para crear las tablas y cargar los datos de ejemplo.
+3. Configurar las credenciales de PostgreSQL en el archivo `.env` del backend.
 
-- **insumos:** ingredientes y existencias disponibles.
-- **productos:** productos que vende la cafetería.
-- **recetas:** ingredientes y cantidades necesarias para preparar cada producto.
-- **pedidos:** fecha, método de pago, subtotal, impuesto, total y estado de cada venta.
-- **pedido_items:** productos, cantidades y precios históricos de cada pedido.
-- **pedido_item_insumos:** cantidades exactas de ingredientes utilizadas por cada artículo vendido, para restaurarlas al anular un pedido.
+### Backend
 
-Relaciones principales:
+1. Entrar en la carpeta `backend/`.
+2. Instalar dependencias con `npm install`.
+3. Configurar las variables de entorno.
+4. Iniciar el servidor con el comando definido en `package.json`.
 
-- Un producto puede tener varios insumos a través de sus recetas.
-- Un pedido puede contener varios artículos.
-- Cada artículo de pedido corresponde a un producto.
-- Los artículos vendidos registran los ingredientes consumidos.
+### Frontend
 
-## Requisitos previos
+1. Entrar en la carpeta `frontend/`.
+2. Instalar dependencias con `npm install`.
+3. Configurar la URL de la API y la URL del webhook de n8n en `.env.local`.
+4. Iniciar Vite con el script definido en `package.json`.
 
-- Node.js y npm instalados.
-- PostgreSQL instalado y funcionando.
-- Una base de datos llamada `cafeteria_db`.
-- Postman para ejecutar las pruebas.
+### n8n
 
-## Configuración de la base de datos
+1. Importar el workflow exportado.
+2. Configurar las credenciales del modelo de IA.
+3. Verificar las URL de la API del backend en los nodos HTTP Request.
+4. Ejecutar las pruebas y activar el workflow.
 
-1. Crear la base de datos `cafeteria_db` desde pgAdmin o desde PostgreSQL.
-2. Ejecutar `schema.sql` en esa base de datos.
-3. Verificar que se hayan creado las tablas y cargado los datos de ejemplo.
-4. Ejecutar también la sentencia de creación de `pedido_item_insumos` incluida en el desarrollo del proyecto, si todavía no forma parte de `schema.sql`.
+## 5. Módulos
 
-## Configuración del backend
+- Dashboard y resumen de ventas.
+- Administración de productos.
+- Administración de insumos.
+- Administración de recetas.
+- Registro y consulta de pedidos.
+- Recomendaciones de compra generadas con IA.
 
-Abrir una terminal en la carpeta `backend/` e instalar las dependencias:
+## 6. Reglas de negocio
 
-```bash
-npm install
-```
+- Los pedidos calculan el total incluyendo el 13 % de impuesto.
+- La disponibilidad de un producto depende de la existencia de sus insumos.
+- La confirmación de pedidos descuenta inventario mediante transacciones.
+- Las operaciones sin stock suficiente deben devolver HTTP 409.
+- La anulación dentro del plazo establecido restaura el inventario.
+- El resumen diario agrupa las ventas por método de pago y muestra los productos más vendidos.
+- El agente de IA analiza insumos críticos y ventas semanales para recomendar compras.
 
-Crear un archivo `.env` dentro de `backend/`:
+## 7. API REST
 
-```env
-PORT=3000
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=cafeteria_db
-DB_USER=postgres
-DB_PASSWORD=TU_CONTRASENA_LOCAL
-```
+Documentar las rutas implementadas para salud, insumos, productos, recetas, pedidos y resumen, indicando método HTTP, parámetros, respuestas y errores posibles.
 
-Sustituir `TU_CONTRASENA_LOCAL` por la contraseña configurada en PostgreSQL. No publicar este archivo ni compartir sus credenciales.
+## 8. Agente de IA
 
-Iniciar el servidor en modo desarrollo:
+El frontend llama a un webhook de n8n. El workflow consulta la API, prepara los datos, utiliza un AI Agent y devuelve una recomendación de compra.
 
-```bash
-npm run dev
-```
+## 9. Pruebas
 
-La API estará disponible en `http://localhost:3000`.
+Registrar las pruebas realizadas en Postman o Thunder Client, incluyendo operaciones exitosas y errores HTTP 400, 404 y 409.
 
-Comprobar la conexión:
+## 10. Estructura del proyecto
 
-```http
-GET http://localhost:3000/api/health
-```
-
-## Endpoints de la API
-
-### Insumos
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/api/insumos` | Listar insumos |
-| GET | `/api/insumos/:id` | Consultar un insumo |
-| POST | `/api/insumos` | Crear un insumo |
-| PUT | `/api/insumos/:id` | Actualizar un insumo |
-| DELETE | `/api/insumos/:id` | Eliminar un insumo |
-
-### Productos
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/api/productos` | Listar productos |
-| GET | `/api/productos/:id` | Consultar producto y receta |
-| POST | `/api/productos` | Crear producto |
-| PUT | `/api/productos/:id` | Actualizar producto |
-| DELETE | `/api/productos/:id` | Eliminar producto |
-
-### Recetas
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/api/recetas` | Listar recetas |
-| GET | `/api/recetas/:id` | Consultar receta |
-| GET | `/api/recetas/producto/:productoId` | Consultar receta por producto |
-| POST | `/api/recetas` | Crear receta |
-| PUT | `/api/recetas/:id` | Actualizar receta |
-| DELETE | `/api/recetas/:id` | Eliminar receta |
-
-### Pedidos y caja
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/api/pedidos` | Listar pedidos |
-| GET | `/api/pedidos/:id` | Consultar pedido y artículos |
-| POST | `/api/pedidos` | Registrar una venta |
-| POST | `/api/pedidos/:id/anular` | Anular un pedido dentro del plazo permitido |
-| GET | `/api/resumen` | Consultar métricas diarias de caja |
-
-## Reglas de negocio
-
-- Los métodos de pago permitidos son `efectivo`, `tarjeta` y `sinpe`.
-- El subtotal se calcula a partir del precio de cada producto multiplicado por su cantidad.
-- El impuesto se calcula al 13 % del subtotal.
-- Los precios históricos se almacenan en los artículos del pedido.
-- No se puede vender un producto inactivo o sin receta.
-- Si no hay suficientes ingredientes, la API rechaza la venta con HTTP `409`.
-- El registro del pedido, sus artículos, el consumo de ingredientes y la actualización del inventario se ejecutan en una transacción.
-- Los errores durante la venta provocan un `ROLLBACK`.
-- Los pedidos confirmados pueden anularse durante los primeros 15 minutos. Al anularlos se restauran las existencias consumidas.
-- El resumen de caja incluye las ventas confirmadas del día agrupadas por método de pago y los cinco productos más vendidos.
-
-## Códigos HTTP
-
-- `200 OK`: consulta o actualización correcta.
-- `201 Created`: recurso creado correctamente.
-- `400 Bad Request`: datos inválidos.
-- `404 Not Found`: recurso inexistente.
-- `409 Conflict`: conflicto con una regla de negocio o restricción.
-- `500 Internal Server Error`: error inesperado del servidor.
-
-Los errores se responden en formato JSON:
-
-```json
-{
-  "error": "Mensaje descriptivo del error"
-}
-```
-
-## Pruebas
-
-La API se prueba mediante Postman. Las pruebas incluyen:
-
-- Consultas y operaciones CRUD.
-- Creación de ventas y cálculo del impuesto.
-- Descuento de ingredientes.
-- Rechazo de ventas sin existencias suficientes.
-- Rechazo de datos inválidos.
-- Consulta y anulación de pedidos.
-- Restauración del inventario.
-- Resumen diario de caja.
-- Respuestas HTTP `400`, `404` y `409`.
-
-La colección de Postman se encuentra en `postman/Cafeteria_API.postman_collection.json`.
-
-## Estado del proyecto
-
-**Día 1:** backend, base de datos, reglas de negocio y pruebas de API.
-
-**Día 2:** desarrollo del frontend con React, integración de la API, panel de métricas e integración del agente de IA mediante n8n.
+- `backend/`: API Express.
+- `frontend/`: aplicación React.
+- `schema.sql`: estructura y datos de la base de datos.
+- `docs/`: workflow exportado y evidencias, si se utiliza esta carpeta.
+- `BITACORA_IA.md`: registro del uso de inteligencia artificial.

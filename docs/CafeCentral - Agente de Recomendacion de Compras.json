@@ -1,0 +1,209 @@
+{
+  "name": "CafeCentral - Agente de Recomendacion de Compras",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cafe-central/recomendaciones",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "305cb151-efb5-464a-ab82-d858770e7163",
+      "name": "Webhook",
+      "webhookId": "3a3d28d1-d02e-48b2-b668-844fcdfff570"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        704,
+        128
+      ],
+      "id": "c12d7ba0-fe2e-43ef-8d62-b031f6d4de07",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const insumos = $('Consultar los insumos').all();\nconst pedidos = $('Consultar las ventas').all();\n\nreturn [\n  {\n    json: {\n      insumosRecibidos: insumos.length,\n      pedidosRecibidos: pedidos.length,\n      muestraInsumos: insumos[0]?.json ?? null,\n      muestraPedidos: pedidos[0]?.json ?? null\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        208
+      ],
+      "id": "44c46a67-acd1-4928-8946-f6afa0dd6739",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/insumos",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "6c39f2ab-d3dd-4d35-a2d6-31cc268a67aa",
+      "name": "Consultar los insumos"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/pedidos",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "d7f075a2-862c-413a-904c-f012e774dd12",
+      "name": "Consultar las ventas"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=[\n  {\n    \"insumosRecibidos\": 5,\n    \"pedidosRecibidos\": 15,\n    \"muestraInsumos\": {\n      \"id\": 1,\n      \"nombre\": \"Cafe molido\",\n      \"unidad\": \"g\",\n      \"stock\": \"1982.00\",\n      \"stock_minimo\": \"500.00\"\n    },\n    \"muestraPedidos\": {\n      \"id\": 3,\n      \"fecha\": \"2026-10-22T16:58:53.926Z\",\n      \"metodo_pago\": \"efectivo\",\n      \"subtotal\": \"45000.00\",\n      \"impuesto\": \"5850.00\",\n      \"total\": \"50850.00\",\n      \"estado\": \"anulado\",\n      \"items\": [\n        {\n          \"producto_id\": 1,\n          \"producto\": \"Americano\",\n          \"cantidad\": 30,\n          \"precio_unitario\": 1500\n        }\n      ]\n    }\n  }\n]",
+        "options": {
+          "systemMessage": "Eres el asistente de compras e inventario de Café Central.\n\nTu tarea es analizar los datos de inventario y las ventas semanales que recibes.\n\nDebes:\n1. Identificar los insumos cuyo stock sea igual o inferior al mínimo establecido.\n2. Analizar las ventas de los últimos siete días para reconocer los productos con mayor demanda.\n3. Recomendar cantidades de compra justificadas usando el stock actual, el mínimo requerido y la demanda observada.\n4. Indicar claramente la unidad de medida de cada insumo.\n5. Si los datos no permiten calcular una cantidad exacta, explica que la cantidad es estimada y por qué.\n6. No inventes datos, ventas, proveedores ni precios.\n7. Si no hay insumos críticos, indícalo claramente.\n\nResponde en español, con una recomendación breve y profesional. Separa los hallazgos, la lista de compras sugerida y la justificación de las cantidades.\n\nDatos de inventario y ventas:\n{{ JSON.stringify($json) }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        208
+      ],
+      "id": "ce6230a9-263e-4aa1-9509-80db0aa280ae",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        96,
+        416
+      ],
+      "id": "17901f4e-b89a-44e5-a610-24e4c8cbb75c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "IWlTciHDZzdkRxUR",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Consultar los insumos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar los insumos": {
+      "main": [
+        [
+          {
+            "node": "Consultar las ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar las ventas": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bec0edae-3f7a-4c44-bd20-d394034b61a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4cb53383a354021176cf3c27aff868bcbefb9cb9d5f524a58006d5ccdc3c2f16"
+  },
+  "nodeGroups": [],
+  "id": "Dlk11DR7A875MxJV",
+  "tags": []
+}

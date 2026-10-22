@@ -69,19 +69,6 @@ CREATE TABLE pedido_items (
         CHECK (precio_unitario > 0)
 );
 
-
-CREATE TABLE IF NOT EXISTS pedido_item_insumos (
-    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    pedido_item_id INTEGER NOT NULL
-        REFERENCES pedido_items(id) ON DELETE CASCADE,
-    insumo_id INTEGER NOT NULL
-        REFERENCES insumos(id) ON DELETE RESTRICT,
-    cantidad_total NUMERIC(10,2) NOT NULL
-        CHECK (cantidad_total > 0),
-    UNIQUE (pedido_item_id, insumo_id)
-);
-
-
 -- ==========================================
 -- DATOS DE EJEMPLO: INSUMOS
 -- ==========================================
@@ -134,3 +121,27 @@ SELECT * FROM productos;
 SELECT * FROM recetas;
 SELECT * FROM pedidos;
 SELECT * FROM pedido_items;
+
+SELECT
+    p.nombre AS producto,
+    i.nombre AS insumo,
+    r.cantidad,
+    i.unidad
+FROM recetas r
+JOIN productos p ON p.id = r.producto_id
+JOIN insumos i ON i.id = r.insumo_id
+ORDER BY p.id, i.id;
+
+
+
+CREATE TABLE IF NOT EXISTS pedido_item_insumos (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    pedido_item_id INTEGER NOT NULL
+        REFERENCES pedido_items(id) ON DELETE CASCADE,
+    insumo_id INTEGER NOT NULL
+        REFERENCES insumos(id) ON DELETE RESTRICT,
+    cantidad_total NUMERIC(10,2) NOT NULL
+        CHECK (cantidad_total > 0),
+    UNIQUE (pedido_item_id, insumo_id)
+);
+
